@@ -1,0 +1,137 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [develop, master]
+    paths-ignore:
+      - 'src/NzbDrone.Core/Localization/Core/**'
+      - 'src/Prowlarr.Api.*/openapi.json'
+  pull_request:
+    branches: [develop]
+    paths-ignore:
+      - 'src/NzbDrone.Core/Localization/Core/**'
+      - 'src/Prowlarr.Api.*/openapi.json'
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NODE_VERSION: '20'
+
+jobs:
+  backend:
+    name: Build Backend (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Linux
+            runner: ubuntu-24.04
+            platform: Posix
+          - os: Windows
+            runner: windows-2025
+            platform: Windows
+          - os: macOS
+            runner: macos-15
+            platform: Posix
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore src/Prowlarr.sln
+
+      - name: Build
+        run: >-
+          dotnet build src/Prowlarr.sln
+          --no-restore
+          -c Release
+          -p:Platform=${{ matrix.platform }}
+          -p:EnableAnalyzers=false
+
+  unit-tests:
+    name: Unit Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    needs: backend
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Linux
+            runner: ubuntu-24.04
+            platform: Posix
+          - os: Windows
+            runner: windows-2025
+            platform: Windows
+          - os: macOS
+            runner: macos-15
+            platform: Posix
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore src/Prowlarr.sln
+
+      - name: Build
+        run: >-
+          dotnet build src/Prowlarr.sln
+          --no-restore
+          -c Release
+          -p:Platform=${{ matrix.platform }}
+          -p:EnableAnalyzers=false
+
+      - name: Unit Tests
+        run: >-
+          dotnet test src/Prowlarr.sln
+          --no-build
+          -c Release
+          -p:Platform=${{ matrix.platform }}
+          --filter "Category!=ManualTest&Category!=IntegrationTest&Category!=AutomationTest"
+          --logger "trx;LogFileName=test-results.trx"
+          --results-directory ./TestResults
+
+      - name: Publish Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: ./TestResults/*.trx
+
+  frontend:
+    name: Build Frontend
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile --network-timeout 120000
+
+      - name: Lint
+        run: |
+          yarn lint
+          yarn stylelint-linux
+
+      - name: Build
+        run: yarn run build --env production
