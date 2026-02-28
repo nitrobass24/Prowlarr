@@ -46,14 +46,10 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore
-        run: dotnet restore src/Prowlarr.sln
-
       - name: Build
         run: >-
-          dotnet build src/Prowlarr.sln
-          --no-restore
-          -c Release
+          dotnet msbuild -restore src/Prowlarr.sln
+          -p:Configuration=Release
           -p:Platform=${{ matrix.platform }}
           -p:EnableAnalyzers=false
 
@@ -85,14 +81,10 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore
-        run: dotnet restore src/Prowlarr.sln
-
       - name: Build
         run: >-
-          dotnet build src/Prowlarr.sln
-          --no-restore
-          -c Release
+          dotnet msbuild -restore src/Prowlarr.sln
+          -p:Configuration=Release
           -p:Platform=${{ matrix.platform }}
           -p:EnableAnalyzers=false
 
