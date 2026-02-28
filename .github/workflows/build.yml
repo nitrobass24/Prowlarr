@@ -88,6 +88,17 @@ jobs:
           -p:Platform=${{ matrix.platform }}
           -p:EnableAnalyzers=false
 
+      - name: Create App Data Directory
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            mkdir -p "$ProgramData/Prowlarr"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            mkdir -p ~/Library/Application\ Support/Prowlarr
+          else
+            mkdir -p ~/.config/Prowlarr
+          fi
+
       - name: Unit Tests
         run: >-
           dotnet test src/Prowlarr.sln
