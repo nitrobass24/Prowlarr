@@ -1,0 +1,76 @@
+language: en-US
+
+reviews:
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_instructions:
+    - path: "src/**/*.cs"
+      instructions: |
+        This is a .NET 8 C# codebase (Prowlarr - an indexer/tracker manager).
+        Review for:
+        - Adherence to C# conventions: prefer `var`, avoid unnecessary `this.`, camelCase with `_` prefix for instance fields.
+        - Proper use of dependency injection patterns.
+        - Ensure database migrations are correctly numbered and non-breaking.
+        - Check for proper null handling and async/await usage.
+        - Verify API endpoints follow RESTful conventions.
+    - path: "src/Prowlarr.Api.V1/**"
+      instructions: |
+        This is the API layer. Ensure:
+        - API resources and controllers follow existing patterns.
+        - Proper HTTP status codes and error responses.
+        - No business logic leaks into controllers — delegate to services in NzbDrone.Core.
+    - path: "src/NzbDrone.Core/**"
+      instructions: |
+        This is the core business logic layer. Ensure:
+        - Services are properly injectable and follow single responsibility.
+        - Database models and migrations follow existing conventions.
+        - Localization keys are added to en.json when user-facing strings are introduced.
+    - path: "src/**/*Test*/**"
+      instructions: |
+        These are test projects. Ensure:
+        - Tests follow existing naming conventions and patterns.
+        - Adequate coverage for new functionality.
+        - Integration tests properly clean up after themselves.
+    - path: "frontend/**/*.tsx"
+      instructions: |
+        This is the React frontend (React 17, Redux, TypeScript).
+        Review for:
+        - Proper use of Redux for state management (redux-thunk, reselect).
+        - Component patterns consistent with the existing codebase.
+        - CSS modules usage for styling.
+    - path: "frontend/**/*.ts"
+      instructions: |
+        TypeScript files in the frontend. Ensure:
+        - Proper typing — avoid `any` where possible.
+        - Redux action creators and reducers follow existing patterns.
+    - path: "frontend/**/*.css"
+      instructions: |
+        CSS modules are used. Ensure:
+        - Styles follow existing conventions (PostCSS with nested, mixins, simple-vars).
+        - No hardcoded colors — use CSS variables where the project defines them.
+
+chat:
+  auto_reply: true
+
+early_access: false
+
+tone_instructions: |
+  Be concise and direct. Focus on correctness, security, and adherence to the existing
+  codebase patterns. This project is a fork of an established *arr application — consistency
+  with upstream conventions matters.
+
+knowledge_base:
+  learnings:
+    scope: auto
+  issues:
+    scope: auto
+  jira:
+    project_keys: []
+  linear:
+    team_keys: []
