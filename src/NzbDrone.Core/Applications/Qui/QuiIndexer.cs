@@ -65,6 +65,7 @@ namespace NzbDrone.Core.Applications.Qui
             return other.BaseUrl == BaseUrl &&
                 other.ApiKey == ApiKey &&
                 other.Name == Name &&
+                other.Backend == Backend &&
                 other.Enabled == Enabled &&
                 other.Priority == Priority &&
                 other.IndexerId == IndexerId &&
@@ -73,7 +74,7 @@ namespace NzbDrone.Core.Applications.Qui
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(BaseUrl, ApiKey, Name, Enabled, Priority, IndexerId);
+            return HashCode.Combine(BaseUrl, ApiKey, Name, Backend, Enabled, Priority, IndexerId);
         }
     }
 }

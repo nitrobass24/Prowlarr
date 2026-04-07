@@ -188,6 +188,28 @@ namespace NzbDrone.Core.Applications.Qui
         {
             var supportedCategories = indexerCapabilities.Categories.SupportedCategories(Settings.SyncCategories.ToArray());
 
+            var capabilities = new List<string> { "search" };
+
+            if (indexerCapabilities.TvSearchAvailable)
+            {
+                capabilities.Add("tv-search");
+            }
+
+            if (indexerCapabilities.MovieSearchAvailable)
+            {
+                capabilities.Add("movie-search");
+            }
+
+            if (indexerCapabilities.MusicSearchAvailable)
+            {
+                capabilities.Add("music-search");
+            }
+
+            if (indexerCapabilities.BookSearchAvailable)
+            {
+                capabilities.Add("book-search");
+            }
+
             return new QuiIndexer
             {
                 Id = id,
@@ -201,7 +223,7 @@ namespace NzbDrone.Core.Applications.Qui
                 LimitDefault = 100,
                 LimitMax = 200,
                 IndexerId = indexer.Id.ToString(),
-                Capabilities = new List<string> { "search" },
+                Capabilities = capabilities,
                 Categories = supportedCategories.Select(c => c.ToString()).ToList()
             };
         }
