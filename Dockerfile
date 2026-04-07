@@ -35,6 +35,7 @@ COPY LICENSE LICENSE
 
 RUN dotnet publish src/NzbDrone/Prowlarr.csproj \
       -c Release \
+      -f net8.0 \
       -r "$(cat /tmp/rid)" \
       --self-contained \
       --no-restore \
