@@ -1,11 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using FluentValidation.Results;
 using NLog;
 using NzbDrone.Common.Extensions;
-using NzbDrone.Common.Http;
 using NzbDrone.Core.Configuration;
 using NzbDrone.Core.Indexers;
 
@@ -29,38 +26,7 @@ namespace NzbDrone.Core.Applications.Qui
         {
             var failures = new List<ValidationFailure>();
 
-            try
-            {
-                failures.AddIfNotNull(_quiProxy.TestConnection(Settings));
-            }
-            catch (HttpException ex)
-            {
-                switch (ex.Response.StatusCode)
-                {
-                    case HttpStatusCode.Unauthorized:
-                        _logger.Warn(ex, "API Key is invalid");
-                        failures.AddIfNotNull(new ValidationFailure("ApiKey", "API Key is invalid"));
-                        break;
-                    case HttpStatusCode.SeeOther:
-                    case HttpStatusCode.TemporaryRedirect:
-                        _logger.Warn(ex, "qui returned redirect and is invalid");
-                        failures.AddIfNotNull(new ValidationFailure("BaseUrl", "qui URL is invalid, Prowlarr cannot connect to qui - are you missing a URL base?"));
-                        break;
-                    case HttpStatusCode.NotFound:
-                        _logger.Warn(ex, "qui not found");
-                        failures.AddIfNotNull(new ValidationFailure("BaseUrl", "qui URL is invalid, Prowlarr cannot connect to qui. Is qui running and accessible?"));
-                        break;
-                    default:
-                        _logger.Warn(ex, "Unable to complete application test");
-                        failures.AddIfNotNull(new ValidationFailure("BaseUrl", $"Unable to complete application test, cannot connect to qui. {ex.Message}"));
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Warn(ex, "Unable to complete application test");
-                failures.AddIfNotNull(new ValidationFailure("BaseUrl", $"Unable to complete application test, cannot connect to qui. {ex.Message}"));
-            }
+            failures.AddIfNotNull(_quiProxy.TestConnection(Settings));
 
             return new ValidationResult(failures);
         }
@@ -168,13 +134,23 @@ namespace NzbDrone.Core.Applications.Qui
             }
             else
             {
-                _appIndexerMapService.Delete(indexerMapping.Id);
+                if (indexerMapping != null)
+                {
+                    _appIndexerMapService.Delete(indexerMapping.Id);
+                }
 
                 if (indexerCapabilities.Categories.SupportedCategories(Settings.SyncCategories.ToArray()).Any())
                 {
                     _logger.Debug("Remote indexer not found, re-adding {0} [{1}] to qui", indexer.Name, indexer.Id);
                     quiIndexer.Id = 0;
                     var newRemoteIndexer = _quiProxy.AddIndexer(quiIndexer, Settings);
+
+                    if (newRemoteIndexer == null)
+                    {
+                        _logger.Debug("Failed to re-add {0} [{1}] to qui", indexer.Name, indexer.Id);
+                        return;
+                    }
+
                     _appIndexerMapService.Insert(new AppIndexerMap { AppId = Definition.Id, IndexerId = indexer.Id, RemoteIndexerId = newRemoteIndexer.Id });
                 }
                 else
