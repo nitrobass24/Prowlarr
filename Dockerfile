@@ -31,6 +31,7 @@ RUN dotnet restore src/NzbDrone.Console/Prowlarr.Console.csproj -r "$(cat /tmp/r
 
 # Copy remaining source and build
 COPY src/ src/
+COPY Logo/ Logo/
 COPY LICENSE LICENSE
 
 RUN dotnet publish src/NzbDrone.Console/Prowlarr.Console.csproj \
