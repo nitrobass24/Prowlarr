@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
@@ -58,13 +59,21 @@ namespace NzbDrone.Core.Applications.Qui
                 return false;
             }
 
+            var thisCategories = (Categories ?? Enumerable.Empty<string>()).OrderBy(c => c);
+            var otherCategories = (other.Categories ?? Enumerable.Empty<string>()).OrderBy(c => c);
+
             return other.BaseUrl == BaseUrl &&
                 other.ApiKey == ApiKey &&
                 other.Name == Name &&
                 other.Enabled == Enabled &&
                 other.Priority == Priority &&
                 other.IndexerId == IndexerId &&
-                other.Categories?.OrderBy(c => c).SequenceEqual(Categories?.OrderBy(c => c) ?? Enumerable.Empty<string>()) == true;
+                otherCategories.SequenceEqual(thisCategories);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(BaseUrl, ApiKey, Name, Enabled, Priority, IndexerId);
         }
     }
 }

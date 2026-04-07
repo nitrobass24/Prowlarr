@@ -82,7 +82,12 @@ namespace NzbDrone.Core.Applications.Qui
         public void RemoveIndexer(int indexerId, QuiSettings settings)
         {
             var request = BuildRequest(settings, $"{AppIndexerApiRoute}/{indexerId}", HttpMethod.Delete);
-            _httpClient.Execute(request);
+            var response = _httpClient.Execute(request);
+
+            if ((int)response.StatusCode >= 300)
+            {
+                throw new HttpException(response);
+            }
         }
 
         public ValidationFailure TestConnection(QuiSettings settings)

@@ -145,7 +145,7 @@ namespace NzbDrone.Core.Applications.Qui
 
             var quiIndexer = BuildQuiIndexer(indexer, indexerCapabilities, indexerMapping?.RemoteIndexerId ?? 0);
 
-            var remoteIndexer = _quiProxy.GetIndexer(indexerMapping.RemoteIndexerId, Settings);
+            var remoteIndexer = _quiProxy.GetIndexer(indexerMapping?.RemoteIndexerId ?? 0, Settings);
 
             if (remoteIndexer != null)
             {
