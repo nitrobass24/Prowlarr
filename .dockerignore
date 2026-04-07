@@ -7,6 +7,5 @@ _temp
 _tests
 _artifacts
 node_modules
-Logo
 *.md
 !LICENSE
