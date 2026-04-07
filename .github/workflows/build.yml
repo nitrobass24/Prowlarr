@@ -64,7 +64,6 @@ jobs:
   unit-tests:
     name: Unit Tests (${{ matrix.os }})
     runs-on: ${{ matrix.runner }}
-    needs: backend
     strategy:
       fail-fast: false
       matrix:
