@@ -27,19 +27,17 @@ COPY src/Prowlarr.Http/Prowlarr.Http.csproj src/Prowlarr.Http/
 COPY src/ServiceHelpers/ServiceInstall/ServiceInstall.csproj src/ServiceHelpers/ServiceInstall/
 COPY src/ServiceHelpers/ServiceUninstall/ServiceUninstall.csproj src/ServiceHelpers/ServiceUninstall/
 
-RUN dotnet restore src/NzbDrone/Prowlarr.csproj -r "$(cat /tmp/rid)" -p:SelfContained=true -p:EnableWindowsTargeting=true
+RUN dotnet restore src/NzbDrone.Console/Prowlarr.Console.csproj -r "$(cat /tmp/rid)" -p:SelfContained=true
 
 # Copy remaining source and build
 COPY src/ src/
 COPY LICENSE LICENSE
 
-RUN dotnet publish src/NzbDrone/Prowlarr.csproj \
+RUN dotnet publish src/NzbDrone.Console/Prowlarr.Console.csproj \
       -c Release \
-      -f net8.0 \
       -r "$(cat /tmp/rid)" \
       --self-contained \
       --no-restore \
-      -p:EnableWindowsTargeting=true \
       -o /build/bin && \
     rm -rf /build/bin/Prowlarr.Update /build/bin/Prowlarr.Windows.* \
            /build/bin/ServiceInstall.* /build/bin/ServiceUninstall.*
