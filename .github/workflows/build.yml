@@ -149,6 +149,9 @@ jobs:
   docker-build:
     name: Build Docker (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
+    outputs:
+      digest-amd64: ${{ steps.build.outputs.digest }}
+      digest-arm64: ${{ steps.build.outputs.digest }}
     strategy:
       fail-fast: false
       matrix:
@@ -161,6 +164,7 @@ jobs:
             platform: linux/arm64
     permissions:
       contents: read
+      packages: write
 
     steps:
       - name: Checkout
@@ -170,6 +174,13 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Determine version
         id: version
@@ -188,25 +199,31 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and export
+      - name: Build and push by digest
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: ${{ matrix.platform }}
-          push: false
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VERSION=${{ steps.version.outputs.version }}
             VERSION_BRANCH=${{ github.ref_name }}
           cache-from: type=gha,scope=${{ matrix.arch }}
           cache-to: type=gha,scope=${{ matrix.arch }},mode=max
-          outputs: type=oci,dest=/tmp/image-${{ matrix.arch }}.tar
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
-      - name: Upload image artifact
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: docker-image-${{ matrix.arch }}
-          path: /tmp/image-${{ matrix.arch }}.tar
+          name: digest-${{ matrix.arch }}
+          path: /tmp/digests/*
           retention-days: 1
 
   docker-publish:
@@ -218,17 +235,12 @@ jobs:
       packages: write
 
     steps:
-      - name: Download amd64 image
+      - name: Download digests
         uses: actions/download-artifact@v4
         with:
-          name: docker-image-amd64
-          path: /tmp
-
-      - name: Download arm64 image
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-image-arm64
-          path: /tmp
+          pattern: digest-*
+          path: /tmp/digests
+          merge-multiple: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -263,20 +275,11 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=raw,value=${{ steps.version.outputs.version }},enable=${{ inputs.version != '' }}
 
-      - name: Load and push multi-arch manifest
+      - name: Create multi-arch manifest and push
+        working-directory: /tmp/digests
         run: |
-          # Import OCI images into buildx store
           docker buildx imagetools create \
-            --tag "$FIRST_TAG" \
-            oci-archive:///tmp/image-amd64.tar \
-            oci-archive:///tmp/image-arm64.tar
-
-          # Apply all remaining tags
-          for tag in $ALL_TAGS; do
-            if [ "$tag" != "$FIRST_TAG" ]; then
-              docker buildx imagetools create --tag "$tag" "$FIRST_TAG"
-            fi
-          done
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
         env:
-          FIRST_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          ALL_TAGS: ${{ join(fromJSON(steps.meta.outputs.json).tags, ' ') }}
+          DOCKER_METADATA_OUTPUT_JSON: ${{ steps.meta.outputs.json }}
