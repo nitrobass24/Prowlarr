@@ -1,0 +1,12 @@
+.git
+.github
+.vscode
+.devcontainer
+_output
+_temp
+_tests
+_artifacts
+node_modules
+Logo
+*.md
+!LICENSE
