@@ -27,7 +27,7 @@ COPY src/Prowlarr.Http/Prowlarr.Http.csproj src/Prowlarr.Http/
 COPY src/ServiceHelpers/ServiceInstall/ServiceInstall.csproj src/ServiceHelpers/ServiceInstall/
 COPY src/ServiceHelpers/ServiceUninstall/ServiceUninstall.csproj src/ServiceHelpers/ServiceUninstall/
 
-RUN dotnet restore src/NzbDrone.Console/Prowlarr.Console.csproj -r "$(cat /tmp/rid)" -p:SelfContained=true
+RUN dotnet restore src/NzbDrone.Console/Prowlarr.Console.csproj -r "$(cat /tmp/rid)" -p:SelfContained=true -p:EnableAnalyzers=false
 
 # Copy remaining source and build
 COPY src/ src/
