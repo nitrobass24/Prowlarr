@@ -2,12 +2,12 @@ name: Build, Test & Docker
 
 on:
   push:
-    branches: [develop, master, feature/**]
+    branches: [main, feature/**]
     paths-ignore:
       - 'src/NzbDrone.Core/Localization/Core/**'
       - 'src/Prowlarr.Api.*/openapi.json'
   pull_request:
-    branches: [develop]
+    branches: [main]
     paths-ignore:
       - 'src/NzbDrone.Core/Localization/Core/**'
       - 'src/Prowlarr.Api.*/openapi.json'
