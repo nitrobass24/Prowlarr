@@ -39,6 +39,7 @@ RUN dotnet publish src/NzbDrone.Console/Prowlarr.Console.csproj \
       -r "$(cat /tmp/rid)" \
       --self-contained \
       --no-restore \
+      -p:EnableAnalyzers=false \
       -o /build/bin && \
     rm -rf /build/bin/Prowlarr.Update /build/bin/Prowlarr.Windows.* \
            /build/bin/ServiceInstall.* /build/bin/ServiceUninstall.*
