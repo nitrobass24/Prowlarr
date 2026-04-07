@@ -84,6 +84,11 @@ namespace NzbDrone.Core.Applications.Qui
             var request = BuildRequest(settings, $"{AppIndexerApiRoute}/{indexerId}", HttpMethod.Delete);
             var response = _httpClient.Execute(request);
 
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return;
+            }
+
             if ((int)response.StatusCode >= 300)
             {
                 throw new HttpException(response);

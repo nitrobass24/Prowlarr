@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentValidation.Results;
@@ -39,8 +40,11 @@ namespace NzbDrone.Core.Applications.Qui
 
             foreach (var indexer in indexers)
             {
+                var baseUrl = Settings.ProwlarrUrl.TrimEnd('/');
+
                 if (indexer.Backend == "prowlarr" &&
-                    indexer.BaseUrl?.TrimEnd('/').StartsWith(Settings.ProwlarrUrl.TrimEnd('/')) == true &&
+                    (indexer.BaseUrl?.TrimEnd('/').Equals(baseUrl, StringComparison.OrdinalIgnoreCase) == true ||
+                     indexer.BaseUrl?.StartsWith(baseUrl + "/", StringComparison.OrdinalIgnoreCase) == true) &&
                     indexer.ApiKey == _configFileProvider.ApiKey &&
                     int.TryParse(indexer.IndexerId, out var indexerId))
                 {
