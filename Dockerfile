@@ -9,8 +9,8 @@ RUN case "${TARGETPLATFORM}" in \
       *) echo "linux-musl-x64" > /tmp/rid ;; \
     esac
 
-# Copy solution and project files first for layer caching on restore
-COPY src/Prowlarr.sln src/Directory.Build.props src/Directory.Build.targets src/NuGet.config src/stylecop.json src/
+# Copy project files first for layer caching on restore
+COPY src/Directory.Build.props src/Directory.Build.targets src/NuGet.config src/stylecop.json src/
 COPY src/Targets/ src/Targets/
 COPY src/Libraries/ src/Libraries/
 COPY src/NzbDrone/Prowlarr.csproj src/NzbDrone/
@@ -27,7 +27,7 @@ COPY src/Prowlarr.Http/Prowlarr.Http.csproj src/Prowlarr.Http/
 COPY src/ServiceHelpers/ServiceInstall/ServiceInstall.csproj src/ServiceHelpers/ServiceInstall/
 COPY src/ServiceHelpers/ServiceUninstall/ServiceUninstall.csproj src/ServiceHelpers/ServiceUninstall/
 
-RUN dotnet restore src/Prowlarr.sln -r "$(cat /tmp/rid)" -p:SelfContained=true
+RUN dotnet restore src/NzbDrone/Prowlarr.csproj -r "$(cat /tmp/rid)" -p:SelfContained=true
 
 # Copy remaining source and build
 COPY src/ src/
