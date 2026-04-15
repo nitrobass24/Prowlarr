@@ -11,4 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NzbDrone.Host\Prowlarr.Host.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="!$(RuntimeIdentifier.StartsWith('win'))">
+    <ProjectReference Include="..\NzbDrone.Mono\Prowlarr.Mono.csproj" />
+  </ItemGroup>
 </Project>
