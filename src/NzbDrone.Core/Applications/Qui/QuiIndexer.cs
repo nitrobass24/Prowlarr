@@ -71,13 +71,20 @@ namespace NzbDrone.Core.Applications.Qui
             var thisCategories = (Categories ?? Enumerable.Empty<QuiCategory>()).Select(c => c.CategoryId).OrderBy(c => c);
             var otherCategories = (other.Categories ?? Enumerable.Empty<QuiCategory>()).Select(c => c.CategoryId).OrderBy(c => c);
 
+            var thisCapabilities = (Capabilities ?? Enumerable.Empty<string>()).OrderBy(c => c);
+            var otherCapabilities = (other.Capabilities ?? Enumerable.Empty<string>()).OrderBy(c => c);
+
             return other.BaseUrl == BaseUrl &&
                 other.ApiKey == ApiKey &&
                 other.Name == Name &&
                 other.Backend == Backend &&
                 other.Enabled == Enabled &&
                 other.Priority == Priority &&
+                other.TimeoutSeconds == TimeoutSeconds &&
+                other.LimitDefault == LimitDefault &&
+                other.LimitMax == LimitMax &&
                 other.IndexerId == IndexerId &&
+                otherCapabilities.SequenceEqual(thisCapabilities) &&
                 otherCategories.SequenceEqual(thisCategories);
         }
 
