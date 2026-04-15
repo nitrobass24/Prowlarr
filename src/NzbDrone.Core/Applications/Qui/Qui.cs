@@ -45,7 +45,6 @@ namespace NzbDrone.Core.Applications.Qui
                 if (indexer.Backend == "prowlarr" &&
                     (indexer.BaseUrl?.TrimEnd('/').Equals(baseUrl, StringComparison.OrdinalIgnoreCase) == true ||
                      indexer.BaseUrl?.StartsWith(baseUrl + "/", StringComparison.OrdinalIgnoreCase) == true) &&
-                    indexer.ApiKey == _configFileProvider.ApiKey &&
                     int.TryParse(indexer.IndexerId, out var indexerId))
                 {
                     mappings.Add(new AppIndexerMap { IndexerId = indexerId, RemoteIndexerId = indexer.Id });
@@ -132,7 +131,11 @@ namespace NzbDrone.Core.Applications.Qui
                     else
                     {
                         _quiProxy.RemoveIndexer(remoteIndexer.Id, Settings);
-                        _appIndexerMapService.Delete(indexerMapping.Id);
+
+                        if (indexerMapping != null)
+                        {
+                            _appIndexerMapService.Delete(indexerMapping.Id);
+                        }
                     }
                 }
             }
@@ -204,7 +207,7 @@ namespace NzbDrone.Core.Applications.Qui
                 LimitMax = 200,
                 IndexerId = indexer.Id.ToString(),
                 Capabilities = capabilities,
-                Categories = supportedCategories.Select(c => c.ToString()).ToList()
+                Categories = supportedCategories.Select(c => new QuiCategory { CategoryId = c, CategoryName = NewznabStandardCategory.GetCatDesc(c) }).ToList()
             };
         }
     }

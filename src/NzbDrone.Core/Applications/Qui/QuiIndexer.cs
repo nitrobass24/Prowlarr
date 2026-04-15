@@ -5,13 +5,22 @@ using Newtonsoft.Json;
 
 namespace NzbDrone.Core.Applications.Qui
 {
-    public class QuiIndexerResponse
+    public class QuiCategory
     {
-        [JsonProperty("torznab_indexer")]
-        public QuiIndexer TorznabIndexer { get; set; }
+        [JsonProperty("indexer_id")]
+        public int IndexerId { get; set; }
+
+        [JsonProperty("category_id")]
+        public int CategoryId { get; set; }
+
+        [JsonProperty("category_name")]
+        public string CategoryName { get; set; }
+
+        [JsonProperty("parent_category_id")]
+        public int? ParentCategoryId { get; set; }
     }
 
-    public class QuiIndexer
+    public class QuiIndexer : IEquatable<QuiIndexer>
     {
         [JsonProperty("id")]
         public int Id { get; set; }
@@ -50,7 +59,7 @@ namespace NzbDrone.Core.Applications.Qui
         public List<string> Capabilities { get; set; }
 
         [JsonProperty("categories")]
-        public List<string> Categories { get; set; }
+        public List<QuiCategory> Categories { get; set; }
 
         public bool Equals(QuiIndexer other)
         {
@@ -59,8 +68,8 @@ namespace NzbDrone.Core.Applications.Qui
                 return false;
             }
 
-            var thisCategories = (Categories ?? Enumerable.Empty<string>()).OrderBy(c => c);
-            var otherCategories = (other.Categories ?? Enumerable.Empty<string>()).OrderBy(c => c);
+            var thisCategories = (Categories ?? Enumerable.Empty<QuiCategory>()).Select(c => c.CategoryId).OrderBy(c => c);
+            var otherCategories = (other.Categories ?? Enumerable.Empty<QuiCategory>()).Select(c => c.CategoryId).OrderBy(c => c);
 
             return other.BaseUrl == BaseUrl &&
                 other.ApiKey == ApiKey &&
@@ -71,6 +80,8 @@ namespace NzbDrone.Core.Applications.Qui
                 other.IndexerId == IndexerId &&
                 otherCategories.SequenceEqual(thisCategories);
         }
+
+        public override bool Equals(object obj) => Equals(obj as QuiIndexer);
 
         public override int GetHashCode()
         {

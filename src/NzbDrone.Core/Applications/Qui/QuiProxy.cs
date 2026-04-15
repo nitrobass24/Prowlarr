@@ -64,8 +64,7 @@ namespace NzbDrone.Core.Applications.Qui
             request.SetContent(indexer.ToJson());
             request.ContentSummary = indexer.ToJson(Formatting.None);
 
-            var response = Execute<QuiIndexerResponse>(request);
-            return response.TorznabIndexer;
+            return Execute<QuiIndexer>(request);
         }
 
         public QuiIndexer UpdateIndexer(QuiIndexer indexer, QuiSettings settings)
@@ -75,23 +74,22 @@ namespace NzbDrone.Core.Applications.Qui
             request.SetContent(indexer.ToJson());
             request.ContentSummary = indexer.ToJson(Formatting.None);
 
-            var response = Execute<QuiIndexerResponse>(request);
-            return response.TorznabIndexer;
+            return Execute<QuiIndexer>(request);
         }
 
         public void RemoveIndexer(int indexerId, QuiSettings settings)
         {
-            var request = BuildRequest(settings, $"{AppIndexerApiRoute}/{indexerId}", HttpMethod.Delete);
-            var response = _httpClient.Execute(request);
-
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            try
             {
-                return;
+                var request = BuildRequest(settings, $"{AppIndexerApiRoute}/{indexerId}", HttpMethod.Delete);
+                _httpClient.Execute(request);
             }
-
-            if ((int)response.StatusCode >= 300)
+            catch (HttpException ex)
             {
-                throw new HttpException(response);
+                if (ex.Response.StatusCode != HttpStatusCode.NotFound)
+                {
+                    throw;
+                }
             }
         }
 
